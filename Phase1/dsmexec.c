@@ -34,11 +34,11 @@ int main(int argc, char *argv[])
 
 		pid_t pid;
 		int num_procs = 0;
-		int port_num = 0;
 		int fd;
 		int i;
 		char * machines[MAX_PROCESS][MACHINE_NAME_SIZE];
-		char ** arg_ssh = malloc(ARG_SIZE*sizeof(char)*(argc-2));
+		char ** argu_ssh = malloc(ARG_SIZE*sizeof(char)*(argc-2));
+
 
 
 		/* Mise en place d'un traitant pour recuperer les fils zombies*/
@@ -67,13 +67,23 @@ int main(int argc, char *argv[])
 		/* creation de la socket d'ecoute */
 		/* + ecoute effective */
 
-		fd = creer_socket(0, &port_num);
+
+		char * ipad = malloc(sizeof(char)*ARG_SIZE);
+		gethostname(ipad, sizeof(ipad));
+
+
+		char * port = malloc(sizeof(char)*ARG_SIZE);
+		memset(ipad,'\0',sizeof(*ipad));
+		memset(port,'\0',sizeof(*port));
+		fd = creer_socket(0, ipad, port);
 
 		int lst = listen(fd, MAXCO);
 		if ( lst== -1 ){
 			perror("listen()");
 			exit(0);
 		}
+
+
 
 
 		/* creation des fils */
@@ -94,23 +104,40 @@ int main(int argc, char *argv[])
 
 				/* Creation du tableau d'arguments pour le ssh */
 
+				*argu_ssh = "erwan@erwan-VirtualBox";
+				*(argu_ssh + ARG_SIZE*sizeof(char)) = "dswrap";
 
-				char arg[ARG_SIZE];
+
+				char socket[10];
+				memset(socket,'\0',sizeof(socket));
+				sprintf(socket, "%d", fd);
+				strcpy((argu_ssh + ARG_SIZE*sizeof(char)),socket);
+
+
 				int j;
+				char arg[ARG_SIZE];
+
+
 				for (j=2; j<argc; j++){
-					printf("salut\n");
-					fflush(stdout);
+
 					memset(arg,0,ARG_SIZE*sizeof(char));
 
 					strcpy(arg, argv[j]);
 
-					strcpy((char *)&arg_ssh[j-2],arg);
-					printf("arg ssh : %s\n",arg_ssh[j-2]);
+					strcpy(*(argu_ssh + (j-1)*ARG_SIZE*sizeof(char)),arg);
+					printf("arg ssh : %s\n",*(argu_ssh + (j-1)*ARG_SIZE*sizeof(char)));
+
 					fflush(stdout);
+
 				}
 
+
 				/* jump to new prog : */
+
+
 				/* execvp("ssh",newargv); */
+
+				execvp("ssh",&argu_ssh);
 
 			} else  if(pid > 0) { /* pere */
 				/* fermeture des extremites des tubes non utiles */

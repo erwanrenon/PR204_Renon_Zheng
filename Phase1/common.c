@@ -1,7 +1,7 @@
 #include "common_impl.h"
 
 
-int creer_socket(int prop, int *port_num) 
+int creer_socket(int prop, char * ipad, char * port)
 {
 
 	/* fonction de creation et d'attachement */
@@ -17,15 +17,17 @@ int creer_socket(int prop, int *port_num)
 
 	fd = socket(AF_INET, SOCK_STREAM, 0);
 	if ( fd == -1 ){
-			perror("socket()");
-			exit(0);
-		}
+		perror("socket()");
+		exit(0);
+	}
 
 	int bnd = bind(fd, (struct sockaddr*)&sin, sizeof(sin));
 	if ( bnd == -1 ){
 		perror("bind()");
 		exit(0);
 	}
+
+
 
 	int sinsize = sizeof(sin);
 	int getsk = getsockname(fd, (struct sockaddr*)&sin, (socklen_t *)(&sinsize));
@@ -34,10 +36,11 @@ int creer_socket(int prop, int *port_num)
 		exit(0);
 	}
 
-	*port_num = ntohs(sin.sin_port);
+	getport(&sin, port);
+	getip(&sin, ipad);
 
-	printf("numéro de port attribué : %d\n", *port_num);
-
+	printf("port : %s\n",port);
+	printf("adresse ip : %s\n",ipad);
 	return fd;
 }
 
@@ -77,6 +80,20 @@ void read_file(FILE* fichier, char * machines[MAX_PROCESS][MACHINE_NAME_SIZE]){
 			i++;
 		}
 	}
+}
+
+void getip(struct sockaddr_in * client, char * ipad) {
+
+	struct sockaddr_in* pV4Addr = client;
+	struct in_addr ipaddr = pV4Addr->sin_addr;
+	inet_ntop( AF_INET, &ipaddr, ipad, INET_ADDRSTRLEN);
+
+}
+
+void getport(struct sockaddr_in * client, char * port) {
+	int p = ntohs(client->sin_port);
+	sprintf(port, "%d", p);
+
 }
 
 /* Vous pouvez ecrire ici toutes les fonctions */

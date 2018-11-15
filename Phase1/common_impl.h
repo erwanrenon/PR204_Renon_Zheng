@@ -10,6 +10,7 @@
 #include <errno.h>
 #include <string.h>
 #include <fcntl.h>
+#include <arpa/inet.h>
 
 /* autres includes (eventuellement) */
 
@@ -34,8 +35,13 @@ struct dsm_proc {
 };
 typedef struct dsm_proc dsm_proc_t;
 
-int creer_socket(int type, int *port_num);
+int creer_socket(int prop, char * ipad, char * port);
 
 int line_count(FILE* fi);
 
 void read_file(FILE* fichier, char * machines[MAX_PROCESS][MACHINE_NAME_SIZE]);
+
+void getip(struct sockaddr_in * client, char * ipad);
+
+void getport(struct sockaddr_in * client, char * port);
+
