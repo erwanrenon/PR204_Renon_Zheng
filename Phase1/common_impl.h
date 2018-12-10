@@ -11,6 +11,7 @@
 #include <string.h>
 #include <fcntl.h>
 #include <arpa/inet.h>
+#include <netdb.h>
 
 /* autres includes (eventuellement) */
 
@@ -19,6 +20,7 @@
 #define MAX_PROCESS 40
 #define MAXCO 20
 #define ARG_SIZE 20
+#define BUF_SIZE 500
 /* definition du type des infos */
 /* de connexion des processus dsm */
 struct dsm_proc_conn  {

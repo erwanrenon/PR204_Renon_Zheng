@@ -36,10 +36,11 @@ int main(int argc, char *argv[])
 		int num_procs = 0;
 		int fd;
 		int i;
+		char * hostname[ARG_SIZE];
 		char * machines[MAX_PROCESS][MACHINE_NAME_SIZE];
-		char ** argu_ssh = malloc(ARG_SIZE*sizeof(char)*(argc-2));
+		char ** argu_ssh = malloc(ARG_SIZE*sizeof(char)*(argc));
 
-
+		gethostname(hostname,ARG_SIZE);
 
 		/* Mise en place d'un traitant pour recuperer les fils zombies*/
 		/* XXX.sa_handler = sigchld_handler; */
@@ -67,22 +68,23 @@ int main(int argc, char *argv[])
 		/* creation de la socket d'ecoute */
 		/* + ecoute effective */
 
-
-		char * ipad = malloc(sizeof(char)*ARG_SIZE);
-		gethostname(ipad, sizeof(ipad));
-
-
+		char * ipad = malloc(sizeof(char)*100);
 		char * port = malloc(sizeof(char)*ARG_SIZE);
 		memset(ipad,'\0',sizeof(*ipad));
 		memset(port,'\0',sizeof(*port));
+
 		fd = creer_socket(0, ipad, port);
+
+		printf("ipad : %s\n", ipad);
+		fflush(stdout);
+
+		printf("socket num : %d\n", fd);
 
 		int lst = listen(fd, MAXCO);
 		if ( lst== -1 ){
 			perror("listen()");
 			exit(0);
 		}
-
 
 
 
@@ -104,19 +106,22 @@ int main(int argc, char *argv[])
 
 				/* Creation du tableau d'arguments pour le ssh */
 
-				*argu_ssh = "erwan@erwan-VirtualBox";
-				*(argu_ssh + ARG_SIZE*sizeof(char)) = "dswrap";
+
+				strcpy((char *)argu_ssh, "ssh");
+				strcpy((char *)(argu_ssh + ARG_SIZE*sizeof(char)), machines[i]);
+				strcpy((char *)(argu_ssh + 2*ARG_SIZE*sizeof(char)), hostname);
+				strcpy((char *)(argu_ssh + 3*ARG_SIZE*sizeof(char)),port);
+				strcpy((char *)(argu_ssh + 4*ARG_SIZE*sizeof(char)),"dswrap");
+
+				//				char socket[10];
+				//				memset(socket,'\0',sizeof(socket));
+				//				sprintf(socket, "%d", fd);
 
 
-				char socket[10];
-				memset(socket,'\0',sizeof(socket));
-				sprintf(socket, "%d", fd);
-				strcpy((argu_ssh + ARG_SIZE*sizeof(char)),socket);
 
 
 				int j;
 				char arg[ARG_SIZE];
-
 
 				for (j=2; j<argc; j++){
 
@@ -124,20 +129,21 @@ int main(int argc, char *argv[])
 
 					strcpy(arg, argv[j]);
 
-					strcpy(*(argu_ssh + (j-1)*ARG_SIZE*sizeof(char)),arg);
-					printf("arg ssh : %s\n",*(argu_ssh + (j-1)*ARG_SIZE*sizeof(char)));
-
-					fflush(stdout);
+					strcpy((char *)(argu_ssh + (j+3)*ARG_SIZE*sizeof(char)),arg);
 
 				}
 
+				for(i=0; i<8; i++){
 
+					printf("arguments ssh : %s\n", (argu_ssh+i*ARG_SIZE*sizeof(char)));
+
+				}
 				/* jump to new prog : */
 
 
 				/* execvp("ssh",newargv); */
 
-				execvp("ssh",&argu_ssh);
+				execvp("ssh",argu_ssh);
 
 			} else  if(pid > 0) { /* pere */
 				/* fermeture des extremites des tubes non utiles */

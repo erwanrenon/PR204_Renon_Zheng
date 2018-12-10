@@ -1,6 +1,7 @@
 #include "common_impl.h"
 
 
+
 int creer_socket(int prop, char * ipad, char * port)
 {
 
@@ -44,6 +45,7 @@ int creer_socket(int prop, char * ipad, char * port)
 	return fd;
 }
 
+
 /* compte le nombre de lignes d'un fichier */
 int line_count(FILE* fi){
 	//compte le nb de lignes d'un fichier existant
@@ -83,6 +85,7 @@ void read_file(FILE* fichier, char * machines[MAX_PROCESS][MACHINE_NAME_SIZE]){
 }
 
 void getip(struct sockaddr_in * client, char * ipad) {
+
 
 	struct sockaddr_in* pV4Addr = client;
 	struct in_addr ipaddr = pV4Addr->sin_addr;
