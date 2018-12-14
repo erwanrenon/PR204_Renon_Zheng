@@ -36,7 +36,7 @@ int main(int argc, char *argv[])
 		int num_procs = 0;
 		int fd;
 		int i;
-		char * hostname[ARG_SIZE];
+		char hostname[ARG_SIZE];
 		char * machines[MAX_PROCESS][MACHINE_NAME_SIZE];
 		char ** argu_ssh = malloc(ARG_SIZE*sizeof(char)*(argc));
 
@@ -108,7 +108,7 @@ int main(int argc, char *argv[])
 
 
 				strcpy((char *)argu_ssh, "ssh");
-				strcpy((char *)(argu_ssh + ARG_SIZE*sizeof(char)), machines[i]);
+				strcpy((char *)(argu_ssh + ARG_SIZE*sizeof(char)), (char *)machines[i]);
 				strcpy((char *)(argu_ssh + 2*ARG_SIZE*sizeof(char)), hostname);
 				strcpy((char *)(argu_ssh + 3*ARG_SIZE*sizeof(char)),port);
 				strcpy((char *)(argu_ssh + 4*ARG_SIZE*sizeof(char)),"dswrap");
@@ -116,9 +116,6 @@ int main(int argc, char *argv[])
 				//				char socket[10];
 				//				memset(socket,'\0',sizeof(socket));
 				//				sprintf(socket, "%d", fd);
-
-
-
 
 				int j;
 				char arg[ARG_SIZE];
@@ -135,20 +132,22 @@ int main(int argc, char *argv[])
 
 				for(i=0; i<8; i++){
 
-					printf("arguments ssh : %s\n", (argu_ssh+i*ARG_SIZE*sizeof(char)));
+					printf("arguments ssh : %s\n", (char *) (argu_ssh+i*ARG_SIZE*sizeof(char)));
 
 				}
 				/* jump to new prog : */
 
-
 				/* execvp("ssh",newargv); */
 
-				execvp("ssh",argu_ssh);
+				execvp("ssh", argu_ssh);
+
+				while(1){
+					;
+				}
 
 			} else  if(pid > 0) { /* pere */
 				/* fermeture des extremites des tubes non utiles */
 				num_procs_creat++;
-				wait(NULL);
 			}
 
 		}
