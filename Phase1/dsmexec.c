@@ -40,6 +40,12 @@ int main(int argc, char *argv[])
 		char * machines[MAX_PROCESS][MACHINE_NAME_SIZE];
 		char ** argu_ssh = malloc(ARG_SIZE*sizeof(char)*(argc));
 
+		son_t *sons = NULL;
+		int idx;
+		int tube[num_procs][2];
+		sons = (son_t  *)malloc(num_procs*sizeof(son_t));
+		memset(sons,0,num_procs*sizeof(son_t));
+
 		gethostname(hostname,ARG_SIZE);
 
 		/* Mise en place d'un traitant pour recuperer les fils zombies*/
@@ -91,15 +97,42 @@ int main(int argc, char *argv[])
 		/* creation des fils */
 		for(i = 0; i < num_procs ; i++) {
 
+			int pipeOut[2];
+			int pipeErr[2];
+
+
 			/* creation du tube pour rediriger stdout */
 
 			/* creation du tube pour rediriger stderr */
+
+			if(pipe(pipeOut) == -1){
+				perror("pipeOut failed\n");
+				exit(EXIT_FAILURE);
+			}
+			if(pipe(pipeErr) == -1){
+				perror("pipeErr failed\n");
+				exit(EXIT_FAILURE);
+			}
 
 			pid = fork();
 			if(pid == -1) ERROR_EXIT("fork");
 
 			if (pid == 0) { /* fils */
 
+		        sons[i].rank =i;
+
+		        close(pipeOut[0]);
+		        close(pipeErr[0]); //ferme lecture
+
+		        dup2(STDOUT_FILENO,pipeOut[1]); // redirection stdout
+		        dup2(STDERR_FILENO,pipeErr[1]);// redirection stderr
+
+		        sons[i].pipeOut = pipeOut[1];
+		        sons[i].pipeErr = pipeErr[1];
+		        printf("%d\n",sons[i].rank);
+		        fflush(stdout);
+		        char* s = "salut ju fils\n";
+		        send_all(sons[i].pipeOut,s,strlen(s)+1);
 				/* redirection stdout */
 
 				/* redirection stderr */
@@ -111,7 +144,7 @@ int main(int argc, char *argv[])
 				strcpy((char *)(argu_ssh + ARG_SIZE*sizeof(char)), (char *)machines[i]);
 				strcpy((char *)(argu_ssh + 2*ARG_SIZE*sizeof(char)), hostname);
 				strcpy((char *)(argu_ssh + 3*ARG_SIZE*sizeof(char)),port);
-				strcpy((char *)(argu_ssh + 4*ARG_SIZE*sizeof(char)),"dswrap");
+				strcpy((char *)(argu_ssh + 4*ARG_SIZE*sizeof(char)),"dsmwrap");
 
 				//				char socket[10];
 				//				memset(socket,'\0',sizeof(socket));
@@ -123,9 +156,7 @@ int main(int argc, char *argv[])
 				for (j=2; j<argc; j++){
 
 					memset(arg,0,ARG_SIZE*sizeof(char));
-
 					strcpy(arg, argv[j]);
-
 					strcpy((char *)(argu_ssh + (j+3)*ARG_SIZE*sizeof(char)),arg);
 
 				}
@@ -147,11 +178,17 @@ int main(int argc, char *argv[])
 
 			} else  if(pid > 0) { /* pere */
 				/* fermeture des extremites des tubes non utiles */
+		        close(pipeOut[1]);
+		        close(pipeErr[1]);
+		        tube[i][0] = pipeOut[0];
+		        tube[i][1] = pipeErr[0];
+		        char *buffer = malloc(80*sizeof(char));
+//		        recv_all(tube[i][0],buffer,sizeof(buffer));
+
 				num_procs_creat++;
 			}
 
 		}
-
 
 		for(i = 0; i < num_procs ; i++){
 

@@ -1,6 +1,20 @@
 #include "common_impl.h"
 
+int send_all(int fd, void *buffer, int size){
+  ssize_t ret = 0;
+  do{
+    ret += write(fd,(char *)buffer+ret,size-ret);
+  } while(ret != size);
+  return 0;
+}
 
+int recv_all(int fd, void *buffer, int size){
+  ssize_t ret = 0;
+  do{
+    ret += read(fd,(char *)buffer+ret,size-ret);
+  } while(ret != size);
+  return 0;
+}
 
 int creer_socket(int prop, char * ipad, char * port)
 {

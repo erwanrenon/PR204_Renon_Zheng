@@ -9,9 +9,12 @@ int main(int argc, char **argv)
    /* creation d'une socket pour se connecter au */
    /* au lanceur et envoyer/recevoir les infos */
    /* necessaires pour la phase dsm_init */   
+
+
    
    /* Envoi du nom de machine au lanceur */
-
+	printf("salut dude");
+	fflush(stdout);
    /* Envoi du pid au lanceur */
 
    /* Creation de la socket d'ecoute pour les */
