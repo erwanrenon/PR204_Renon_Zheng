@@ -38,7 +38,8 @@ int main(int argc, char *argv[])
 		int i;
 		char hostname[ARG_SIZE];
 		char * machines[MAX_PROCESS][MACHINE_NAME_SIZE];
-		char ** argu_ssh = malloc(ARG_SIZE*sizeof(char)*(argc));
+		char * argu_ssh [8];
+		argu_ssh[7] = NULL;
 
 		son_t *sons = NULL;
 		int idx;
@@ -140,11 +141,11 @@ int main(int argc, char *argv[])
 				/* Creation du tableau d'arguments pour le ssh */
 
 
-				strcpy((char *)argu_ssh, "ssh");
-				strcpy((char *)(argu_ssh + ARG_SIZE*sizeof(char)), (char *)machines[i]);
-				strcpy((char *)(argu_ssh + 2*ARG_SIZE*sizeof(char)), hostname);
-				strcpy((char *)(argu_ssh + 3*ARG_SIZE*sizeof(char)),port);
-				strcpy((char *)(argu_ssh + 4*ARG_SIZE*sizeof(char)),"dsmwrap");
+				argu_ssh[0] = "ssh";
+				argu_ssh[1] = (char *)machines[i];
+
+				argu_ssh[2]="./dsmwrap";
+				argu_ssh[3]=hostname;
 
 				//				char socket[10];
 				//				memset(socket,'\0',sizeof(socket));
@@ -157,20 +158,14 @@ int main(int argc, char *argv[])
 
 					memset(arg,0,ARG_SIZE*sizeof(char));
 					strcpy(arg, argv[j]);
-					strcpy((char *)(argu_ssh + (j+3)*ARG_SIZE*sizeof(char)),arg);
+					argu_ssh[j+2] = arg;
 
 				}
 
-				for(i=0; i<8; i++){
-
-					printf("arguments ssh : %s\n", (char *) (argu_ssh+i*ARG_SIZE*sizeof(char)));
-
-				}
 				/* jump to new prog : */
 
-				/* execvp("ssh",newargv); */
-
 				execvp("ssh", argu_ssh);
+				printf("ssh fait\n");
 
 				while(1){
 					;
@@ -193,6 +188,8 @@ int main(int argc, char *argv[])
 		for(i = 0; i < num_procs ; i++){
 
 			/* on accepte les connexions des processus dsm */
+
+
 
 			/*  On recupere le nom de la machine distante */
 			/* 1- d'abord la taille de la chaine */
